@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAP Leaderboard</title>
 <style>
   body { background: #0f0f0f; color: #fff; font-family: Arial, sans-serif; text-align: center; }
@@ -10,32 +9,40 @@
   th, td { border: 1px solid #444; padding: 10px; }
   th { background: #007bff; }
   td img { border-radius: 50%; }
-  .pagination a { color: #fff; margin: 0 5px; text-decoration: none; }
-  .pagination a.current { font-weight: bold; color: #ff0; }
+  .pagination button { margin: 0 5px; }
+  .pagination .current { font-weight: bold; color: #ff0; }
 </style>
 </head>
 <body>
 <h1>RAP Leaderboard</h1>
 <div id="leaderboard"></div>
+<div class="pagination" id="pagination"></div>
 <script>
-  const page = new URLSearchParams(window.location.search).get("page") || 1;
-  fetch(`/api/leaderboard?page=${page}`)
-    .then(res => res.json())
-    .then(data => {
-      const tbl = document.createElement("table");
-      tbl.innerHTML = `
+  let page = 1;
+  const playersPerPage = 10;
+
+  async function fetchLeaderboard(p = 1) {
+    page = p;
+    const res = await fetch(`/api/leaderboard?page=${p}`);
+    const data = await res.json();
+    const leaderboardDiv = document.getElementById("leaderboard");
+
+    leaderboardDiv.innerHTML = `
+      <table>
         <tr><th>Rank</th><th>Avatar</th><th>User ID</th><th>Total RAP</th></tr>
         ${data.leaderboard.map((u, i) => `
           <tr>
-            <td>${(page-1)*10 + i + 1}</td>
+            <td>${(page-1)*playersPerPage + i + 1}</td>
             <td>${u.avatar ? `<img src="${u.avatar}" width="50" height="50">` : ""}</td>
             <td>${u.userId}</td>
-            <td>${u.totalRAP.toLocaleString()}</td>
+            <td>${u.totalRAP}</td>
           </tr>
-        `).join("")}
-      `;
-      document.getElementById("leaderboard").appendChild(tbl);
-    });
+        `).join('')}
+      </table>
+    `;
+  }
+
+  fetchLeaderboard();
 </script>
 </body>
 </html>
